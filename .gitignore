@@ -1,1 +1,6 @@
 .idea
+# Ignore migrations folders in all apps
+**/migrations/*
+!**/migrations/__init__.py
+.env
+
