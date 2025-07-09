@@ -1,14 +1,13 @@
-from rest_framework import generics
+from rest_framework import generics, serializers
 from rest_framework.permissions import IsAuthenticated
-from .models import Product, Order
-from .serializers import ProductSerializer, OrderSerializer
-from django.core.cache import cache
 from rest_framework.response import Response
+from .models import Product, Cart, Order
+from .serializers import ProductSerializer, CartSerializer, OrderSerializer
+from django.core.cache import cache
+from django.conf import settings
+import urllib.parse
 
 class ProductListView(generics.ListAPIView):
-    """
-    Lists all products, cached in Redis for faster reloads.
-    """
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
     permission_classes = [IsAuthenticated]
@@ -23,9 +22,6 @@ class ProductListView(generics.ListAPIView):
         return Response(serializer.data)
 
 class ProductDetailView(generics.RetrieveAPIView):
-    """
-    Retrieves a specific product, cached in Redis.
-    """
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
     permission_classes = [IsAuthenticated]
@@ -39,22 +35,43 @@ class ProductDetailView(generics.RetrieveAPIView):
         cache.set(cache_key, serializer.data, timeout=60*15)
         return Response(serializer.data)
 
+class CartAddView(generics.CreateAPIView):
+    queryset = Cart.objects.all()
+    serializer_class = CartSerializer
+    permission_classes = [IsAuthenticated]
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+class CartListView(generics.ListAPIView):
+    serializer_class = CartSerializer
+    permission_classes = [IsAuthenticated]
+    def get_queryset(self):
+        return Cart.objects.filter(user=self.request.user)
+
 class OrderCreateView(generics.CreateAPIView):
-    """
-    Creates a new order with pending status.
-    """
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
     permission_classes = [IsAuthenticated]
-
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user, status='pending')
+        product_ids = serializer.validated_data.pop('product_ids')  # Remove product_ids from validated data
+        products = Product.objects.filter(id__in=product_ids)
+        if not products.exists():
+            raise serializers.ValidationError("No valid products found")
+        order = serializer.save(user=self.request.user, status='pending')  # Save without product_ids
+        order.products.set(products)  # Set ManyToMany relationship
+        Cart.objects.filter(user=self.request.user).delete()
         cache.delete('product_list')
+    def create(self, request, *args, **kwargs):
+        response = super().create(request, *args, **kwargs)
+        order = Order.objects.get(id=response.data['id'])
+        products = order.products.all()
+        product_details = ", ".join([f"{p.name} ({p.size}) - ₦{p.price}" for p in products])
+        whatsapp_message = f"New Order: {product_details}, User: {order.user.email}"
+        whatsapp_url = f"https://wa.me/{settings.WHATSAPP_NUMBER}?text={urllib.parse.quote(whatsapp_message)}"
+        response.data['whatsapp_url'] = whatsapp_url
+        return Response(response.data)
 
 class OrderListView(generics.ListAPIView):
-    """
-    Lists orders for the authenticated user only.
-    """
     serializer_class = OrderSerializer
     permission_classes = [IsAuthenticated]
     def get_queryset(self):

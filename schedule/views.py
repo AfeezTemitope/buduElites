@@ -6,16 +6,10 @@ from django.core.cache import cache
 from rest_framework.response import Response
 
 class EventListView(generics.ListAPIView):
-    """
-    Returns the latest event (training schedule), cached in Redis.
-    """
     serializer_class = EventSerializer
     permission_classes = [IsAuthenticated]
-
     def get_queryset(self):
-        # Return only the latest event
-        return Event.objects.order_by('-created_at')[:1]
-
+        return Event.objects.order_by('date')
     def get(self, request, *args, **kwargs):
         cache_key = 'event_list'
         cached_data = cache.get(cache_key)

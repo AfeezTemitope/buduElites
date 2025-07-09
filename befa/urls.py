@@ -38,6 +38,8 @@ urlpatterns = [
     #custom
     path('api/users/', include('users.urls')),
     path('api/ecommerce/', include('e_commerce.urls')),
+    path('api/schedule/', include('schedule.urls')),
+    path('api/content-hub/', include('content_hub.urls')),
 
     #swagger
     # Swagger and ReDoc
