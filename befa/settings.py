@@ -38,7 +38,9 @@ SECRET_KEY = 'django-insecure-s6j(0j4lq0v*t4^3hlffex9v^)dz509+ue8_b$_szad%s+fodo
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    'https://buduelites.onrender.com'
+]
 
 
 # Application definition
