@@ -36,13 +36,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-s6j(0j4lq0v*t4^3hlffex9v^)dz509+ue8_b$_szad%s+fodo'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = [
-    'https://buduelites.onrender.com',
+    '',
     'buduelites.onrender.com',
-    'http://127.0.0.1:8000/',
-    'http://localhost:8000'
+    '127.0.0.1',
+    'localhost:8000'
 ]
 
 
@@ -76,6 +76,7 @@ CORS_ORIGIN_ALLOW_ALL = True
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -185,6 +186,7 @@ CLOUDINARY_STORAGE = {
     'CLOUD_NAME': config('CLOUD_NAME'),
     'API_KEY': config('API_KEY'),
     'API_SECRET': config('API_SECRET'),
+    'STATICFILES_MANIFEST_ROOT': os.path.join(BASE_DIR, 'staticfiles_manifest'),
 }
 
 
@@ -241,5 +243,10 @@ LOGGING = {
     },
 }
 
+# Static files (CSS, JavaScript, Images)
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # Where collectstatic stores files
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),  # Optional: for custom static files
+]
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
