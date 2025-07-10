@@ -246,7 +246,5 @@ LOGGING = {
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # Where collectstatic stores files
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static'),  # Optional: for custom static files
-]
+STATICFILES_DIRS = []
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'

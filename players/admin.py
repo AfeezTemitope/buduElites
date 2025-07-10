@@ -1,17 +1,49 @@
 from django.contrib import admin
+from django import forms
 from django.core.cache import cache
 from .models import Player
 import cloudinary.uploader
 
 
+class PlayerAdminForm(forms.ModelForm):
+    image = forms.ImageField(required=False, label='Player Image')
+
+    class Meta:
+        model = Player
+        fields = [
+            'name', 'position', 'team', 'image', 'goals', 'assists', 'matches',
+            'rating', 'saves', 'clean_sheets', 'bio', 'achievements', 'is_player_of_the_month'
+        ]
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        image = self.cleaned_data.get('image')
+        if image:
+            try:
+                if instance.image_public_id:
+                    cloudinary.uploader.destroy(instance.image_public_id)
+                uploaded = cloudinary.uploader.upload(image)
+                instance.image = uploaded['secure_url']
+                instance.image_public_id = uploaded['public_id']
+            except Exception as e:
+                raise forms.ValidationError(f"Cloudinary upload failed: {str(e)}")
+        if commit:
+            instance.save()
+        cache.delete('player_of_the_month')
+        cache.delete('featured_players')
+        return instance
+
+
 @admin.register(Player)
 class PlayerAdmin(admin.ModelAdmin):
-    list_display = ['name', 'position', 'team', 'is_player_of_the_month', 'rating']
-    list_filter = ['is_player_of_the_month', 'team']
-    search_fields = ['name', 'position']
-    list_editable = ['is_player_of_the_month']
+    form = PlayerAdminForm
+    list_display = ('name', 'position', 'team', 'is_player_of_the_month', 'rating', 'created_at')
+    list_filter = ('is_player_of_the_month', 'team')
+    search_fields = ('name', 'position')
+    actions = ['set_player_of_the_month', 'set_featured_players']
+
     fieldsets = (
-        (None, {
+        ('Basic Info', {
             'fields': ('name', 'position', 'team', 'image', 'is_player_of_the_month')
         }),
         ('Statistics', {
@@ -21,44 +53,58 @@ class PlayerAdmin(admin.ModelAdmin):
             'fields': ('bio', 'achievements')
         }),
     )
-    actions = ['replace_players_of_the_month']
 
-    def replace_players_of_the_month(self, request, queryset):
-        """
-        Deletes current Player of the Month and Featured Players, their Cloudinary images,
-        and clears cache. Expects queryset to include new players (1 for Player of the Month,
-        up to 3 for Featured Players).
-        """
-        # Validate queryset: 1 Player of the Month, up to 3 Featured Players
-        new_player_of_the_month = queryset.filter(is_player_of_the_month=True)
-        new_featured_players = queryset.filter(is_player_of_the_month=False)
-
-        if new_player_of_the_month.count() != 1:
-            self.message_user(request, "Exactly one player must be marked as Player of the Month.", level='error')
+    def set_player_of_the_month(self, request, queryset):
+        if queryset.count() != 1:
+            self.message_user(request, "Select exactly one player.", level='error')
             return
-        if new_featured_players.count() > 3:
-            self.message_user(request, "Maximum of 3 Featured Players allowed.", level='error')
+        player = queryset.first()
+        try:
+            Player.objects.filter(is_player_of_the_month=True).exclude(id=player.id).update(
+                is_player_of_the_month=False)
+            player.is_player_of_the_month = True
+            player.save()
+            cache.delete('player_of_the_month')
+            self.message_user(request, f"Set {player.name} as Player of the Month.", level='success')
+        except Exception as e:
+            self.message_user(request, f"Error: {str(e)}", level='error')
+
+    set_player_of_the_month.short_description = "Set as Player of the Month"
+
+    def set_featured_players(self, request, queryset):
+        if queryset.count() > 3:
+            self.message_user(request, "Select up to three players.", level='error')
             return
+        try:
+            current_featured = Player.objects.filter(is_player_of_the_month=False)
+            total_featured = current_featured.count() + queryset.count()
+            if total_featured > 3:
+                excess = total_featured - 3
+                for player in current_featured[:excess]:
+                    if player.image_public_id:
+                        cloudinary.uploader.destroy(player.image_public_id)
+                    player.delete()
+            for player in queryset:
+                player.is_player_of_the_month = False
+                player.save()
+            cache.delete('featured_players')
+            self.message_user(request, f"Set {queryset.count()} Featured Player(s).", level='success')
+        except Exception as e:
+            self.message_user(request, f"Error: {str(e)}", level='error')
 
-        # Delete existing Player of the Month
-        current_player_of_the_month = Player.objects.filter(is_player_of_the_month=True)
-        for player in current_player_of_the_month:
-            if player.image:
-                cloudinary.uploader.destroy(player.image.public_id)
-            player.delete()
+    set_featured_players.short_description = "Set as Featured Players"
 
-        # Delete existing Featured Players (assuming you want to limit to 3 in DB)
-        current_featured_players = Player.objects.filter(is_player_of_the_month=False)
-        for player in current_featured_players:
-            if player.image:
-                cloudinary.uploader.destroy(player.image.public_id)
-            player.delete()
-
-        # Clear cache
+    def delete_model(self, request, obj):
+        if obj.image_public_id:
+            cloudinary.uploader.destroy(obj.image_public_id)
         cache.delete('player_of_the_month')
         cache.delete('featured_players')
+        obj.delete()
 
-        # Save new players (already in queryset, ensure they are not deleted)
-        self.message_user(request, "Successfully replaced Player of the Month and Featured Players.", level='success')
-
-    replace_players_of_the_month.short_description = "Replace Player of the Month and Featured Players"
+    def delete_queryset(self, request, queryset):
+        for obj in queryset:
+            if obj.image_public_id:
+                cloudinary.uploader.destroy(obj.image_public_id)
+        cache.delete('player_of_the_month')
+        cache.delete('featured_players')
+        queryset.delete()

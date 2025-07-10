@@ -4,6 +4,7 @@ from django.core.cache import cache
 from .models import Player
 import cloudinary.uploader
 
+
 @receiver(post_save, sender=Player)
 def invalidate_player_cache_on_save(sender, instance, **kwargs):
     cache.delete('player_of_the_month')
