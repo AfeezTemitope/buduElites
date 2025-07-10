@@ -39,7 +39,8 @@ SECRET_KEY = 'django-insecure-s6j(0j4lq0v*t4^3hlffex9v^)dz509+ue8_b$_szad%s+fodo
 DEBUG = True
 
 ALLOWED_HOSTS = [
-    'https://buduelites.onrender.com'
+    'https://buduelites.onrender.com',
+    'buduelites.onrender.com'
 ]
 
 
