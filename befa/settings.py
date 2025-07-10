@@ -39,10 +39,11 @@ SECRET_KEY = 'django-insecure-s6j(0j4lq0v*t4^3hlffex9v^)dz509+ue8_b$_szad%s+fodo
 DEBUG = False
 
 ALLOWED_HOSTS = [
-    '',
-    'buduelites.onrender.com',
-    '127.0.0.1',
-    'localhost:8000'
+    'buduelites.onrender.com', '127.0.0.1', 'localhost'
+]
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:5173', #localhost
+    'https://befa-five.vercel.app', #deployed frontend
 ]
 
 
@@ -58,7 +59,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'users',
-    'players',
+    'players.apps.PlayersConfig',
     'e_commerce',
     'content_hub',
     'schedule',
@@ -72,7 +73,6 @@ INSTALLED_APPS = [
     'django_redis',
 
 ]
-CORS_ORIGIN_ALLOW_ALL = True
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
