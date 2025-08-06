@@ -50,8 +50,6 @@ CORS_ALLOWED_ORIGINS = [
 # Application definition
 
 INSTALLED_APPS = [
-    'daphne',
-    'channels',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -112,14 +110,24 @@ WSGI_APPLICATION = 'befa.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
+        'ENGINE': 'django.db.backends.mysql',
         'NAME': config('DB_NAME'),
         'USER': config('DB_USER'),
         'PASSWORD': config('DB_PASS'),
         'HOST': config('DB_HOST'),
-        'PORT': config('DB_PORT', default='5432'),
+        'PORT': config('DB_PORT', default='3306'),
     }
 }
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': config('DB_NAME'),
+#         'USER': config('DB_USER'),
+#         'PASSWORD': config('DB_PASS'),
+#         'HOST': config('DB_HOST'),
+#         'PORT': config('DB_PORT', default='5432'),
+#     }
+# }
 
 
 # Password validation
@@ -208,8 +216,8 @@ MEDIA_ROOT= os.path.join(BASE_DIR, 'media/')
 
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(hours=5),  # Access token expires after 5 hours
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),  # Refresh token expires after 7 days
+    'ACCESS_TOKEN_LIFETIME': timedelta(hours=24),  # Access token expires after 5 hours
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=30),  # Refresh token expires after 7 days
     'ROTATE_REFRESH_TOKENS': False,
     'BLACKLIST_AFTER_ROTATION': False,
     'UPDATE_LAST_LOGIN': True,
