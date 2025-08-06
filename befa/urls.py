@@ -40,6 +40,7 @@ urlpatterns = [
     path('api/ecommerce/', include('e_commerce.urls')),
     path('api/schedule/', include('schedule.urls')),
     path('api/content-hub/', include('content_hub.urls')),
+    path('api/players/', include('players.urls')),
 
     #swagger
     # Swagger and ReDoc

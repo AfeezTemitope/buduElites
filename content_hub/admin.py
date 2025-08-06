@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django import forms
-from .models import Post, Comment, PostLike, CommentLike
+from .models import Post, PostLike
 import cloudinary.uploader
 from django.core.cache import cache
 
@@ -43,28 +43,7 @@ class PostAdmin(admin.ModelAdmin):
         cache.delete('post_list')
         queryset.delete()
 
-@admin.register(Comment)
-class CommentAdmin(admin.ModelAdmin):
-    list_display = ('post', 'author', 'text_preview', 'created_at')
-    list_filter = ('post', 'author', 'created_at')
-    search_fields = ('text', 'author__email')
-
-    def text_preview(self, obj):
-        return obj.text[:50] + ('...' if len(obj.text) > 50 else '')
-    text_preview.short_description = 'Text'
-
-    def delete_model(self, request, obj):
-        obj.delete()
-
-    def delete_queryset(self, request, queryset):
-        queryset.delete()
-
 @admin.register(PostLike)
 class PostLikeAdmin(admin.ModelAdmin):
     list_display = ('post', 'user', 'created_at')
     list_filter = ('post', 'user')
-
-@admin.register(CommentLike)
-class CommentLikeAdmin(admin.ModelAdmin):
-    list_display = ('comment', 'user', 'created_at')
-    list_filter = ('comment', 'user')

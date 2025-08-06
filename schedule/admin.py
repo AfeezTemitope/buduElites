@@ -8,17 +8,10 @@ class EventAdminForm(forms.ModelForm):
     image = forms.ImageField(required=False)
     class Meta:
         model = Event
-        fields = ['date', 'time', 'venue', 'jersey_color', 'image']
+        fields = ['date', 'time', 'venue', 'jersey_color']
 
     def save(self, commit=True):
         instance = super().save(commit=False)
-        image = self.cleaned_data.get('image')
-        if image:
-            try:
-                uploaded = cloudinary.uploader.upload(image)
-                instance.image_url = uploaded['secure_url']
-            except Exception as e:
-                raise forms.ValidationError(f"Cloudinary upload failed: {str(e)}")
         if commit:
             instance.save()
         cache.delete('event_list')
