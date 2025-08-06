@@ -33,8 +33,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-s6j(0j4lq0v*t4^3hlffex9v^)dz509+ue8_b$_szad%s+fodo'
 
+SECRET_KEY = config('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
@@ -110,12 +110,12 @@ WSGI_APPLICATION = 'befa.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
+        'ENGINE': 'django.db.backends.postgresql',
         'NAME': config('DB_NAME'),
         'USER': config('DB_USER'),
         'PASSWORD': config('DB_PASS'),
         'HOST': config('DB_HOST'),
-        'PORT': config('DB_PORT', default='3306'),
+        'PORT': config('DB_PORT', default='5432'),
     }
 }
 # DATABASES = {
