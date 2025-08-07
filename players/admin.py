@@ -22,7 +22,7 @@ class PlayerAdminForm(forms.ModelForm):
             try:
                 if instance.image_public_id:
                     cloudinary.uploader.destroy(instance.image_public_id)
-                uploaded = cloudinary.uploader.upload(image)
+                uploaded = cloudinary.uploader.upload(image, format='webp')
                 instance.image = uploaded['secure_url']
                 instance.image_public_id = uploaded['public_id']
             except Exception as e:

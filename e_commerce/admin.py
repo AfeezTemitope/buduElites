@@ -15,7 +15,7 @@ class ProductAdminForm(forms.ModelForm):
         image = self.cleaned_data.get('image')
         if image:
             try:
-                uploaded = cloudinary.uploader.upload(image)
+                uploaded = cloudinary.uploader.upload(image, format='webp')
                 instance.image_url = uploaded['secure_url']
             except Exception as e:
                 raise forms.ValidationError(f"Cloudinary upload failed: {str(e)}")
