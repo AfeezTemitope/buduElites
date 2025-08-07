@@ -43,7 +43,7 @@ ALLOWED_HOSTS = [
 ]
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:5173', #localhost
-    'https://befa-five.vercel.app', #deployed frontend
+    'https://befa-five.vercel.app', 'https://buduelite.netlify.app' #deployed frontend
 ]
 
 
