@@ -12,9 +12,9 @@
       --breadcrumbs-link-fg: #e0e0e0;
       --breadcrumbs-bg: var(--primary);
   
-      --link-fg: #81d4fa;
+      --link-fg: #8bfa81;
       --link-hover-color: #4ac1f7;
-      --link-selected-fg: #6f94c6;
+      --link-selected-fg: #79c66f;
   
       --hairline-color: #272727;
       --border-color: #353535;
@@ -49,9 +49,9 @@ html[data-theme="dark"] {
     --breadcrumbs-link-fg: #e0e0e0;
     --breadcrumbs-bg: var(--primary);
 
-    --link-fg: #81d4fa;
+    --link-fg: #00ff04;
     --link-hover-color: #4ac1f7;
-    --link-selected-fg: #6f94c6;
+    --link-selected-fg: #83c66f;
 
     --hairline-color: #272727;
     --border-color: #353535;
