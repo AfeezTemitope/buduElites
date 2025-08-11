@@ -10,7 +10,6 @@ from .serializers import PlayerSerializer
 
 
 class PlayerOfTheMonthView(APIView):
-    permission_classes = [IsAuthenticated]
 
     @cached_response(
         cache_key_func=lambda self, req: 'player_of_the_month',
@@ -25,7 +24,6 @@ class PlayerOfTheMonthView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 class FeaturedPlayersView(APIView):
-    permission_classes = [IsAuthenticated]
 
     @cached_response(
         cache_key_func=lambda self, req: 'featured_players',

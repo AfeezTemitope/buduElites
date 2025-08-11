@@ -9,7 +9,6 @@ from .serializers import PostSerializer
 class PostListCreateView(generics.ListCreateAPIView):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
-    permission_classes = [IsAuthenticated]
 
     @cached_response(cache_key_func=lambda self, req: 'post_list', timeout=60*15)
     def get(self, request, *args, **kwargs):
@@ -28,7 +27,6 @@ class PostListCreateView(generics.ListCreateAPIView):
 class PostDetailView(generics.RetrieveAPIView):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
-    permission_classes = [IsAuthenticated]
 
     @cached_response(
         cache_key_func=lambda self, req: f'post_{self.kwargs["pk"]}',
@@ -40,7 +38,6 @@ class PostDetailView(generics.RetrieveAPIView):
         return Response(serializer.data)
 class PostLikeView(generics.CreateAPIView):
     queryset = PostLike.objects.all()
-    permission_classes = [IsAuthenticated]
 
     def post(self, request, *args, **kwargs):
         try:

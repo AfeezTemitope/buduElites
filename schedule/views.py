@@ -9,7 +9,6 @@ from rest_framework.response import Response
 
 class EventListView(generics.ListAPIView):
     serializer_class = EventSerializer
-    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         return Event.objects.order_by('date')
