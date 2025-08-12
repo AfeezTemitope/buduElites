@@ -1,5 +1,5 @@
 from rest_framework import generics
-from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny
 from rest_framework.response import Response
 from django.core.cache import cache
 from utils.cache import cached_response
@@ -19,7 +19,7 @@ class PostListCreateView(generics.ListCreateAPIView):
     def get_permissions(self):
         if self.request.method == 'POST':
             return [IsAdminUser()]
-        return [IsAuthenticated()]
+        return [AllowAny()]
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
@@ -27,6 +27,7 @@ class PostListCreateView(generics.ListCreateAPIView):
 class PostDetailView(generics.RetrieveAPIView):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
+    # permission_classes = [AllowAny]
 
     @cached_response(
         cache_key_func=lambda self, req: f'post_{self.kwargs["pk"]}',
@@ -36,6 +37,7 @@ class PostDetailView(generics.RetrieveAPIView):
         instance = self.get_object()
         serializer = self.get_serializer(instance, context={'request': request})
         return Response(serializer.data)
+
 class PostLikeView(generics.CreateAPIView):
     queryset = PostLike.objects.all()
 
@@ -49,7 +51,11 @@ class PostLikeView(generics.CreateAPIView):
             cache.delete(f'post_{post_id}')
             if not created:
                 like.delete()
-                return Response({'message': 'Like removed'})
-            return Response({'message': 'Like added'})
+                post.refresh_from_db()
+                serializer = PostSerializer(post, context={'request': request})
+                return Response({'message': 'Like removed', 'post': serializer.data})
+            post.refresh_from_db()
+            serializer = PostSerializer(post, context={'request': request})
+            return Response({'message': 'Like added', 'post': serializer.data})
         except Exception:
             return Response({'message': 'Error processing like'})
