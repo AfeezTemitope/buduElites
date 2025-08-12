@@ -1,5 +1,5 @@
 from rest_framework import generics
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 
 from utils.cache import cached_response
 from .models import Event
@@ -9,7 +9,7 @@ from rest_framework.response import Response
 
 class EventListView(generics.ListAPIView):
     serializer_class = EventSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def get_queryset(self):
         return Event.objects.order_by('date')

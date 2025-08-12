@@ -13,7 +13,6 @@ import urllib.parse
 class ProductListView(generics.ListAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
-    permission_classes = [IsAuthenticated]
 
     @cached_response(cache_key_func=lambda self, req: 'product_list', timeout=60 * 15)
     def get(self, request, *args, **kwargs):
@@ -25,7 +24,6 @@ class ProductListView(generics.ListAPIView):
 class ProductDetailView(generics.RetrieveAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
-    permission_classes = [IsAuthenticated]
 
     def get(self, request, *args, **kwargs):
         cache_key = f'product_{self.kwargs["pk"]}'
@@ -41,7 +39,6 @@ class ProductDetailView(generics.RetrieveAPIView):
 class CartAddView(generics.CreateAPIView):
     queryset = Cart.objects.all()
     serializer_class = CartSerializer
-    permission_classes = [IsAuthenticated]
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
@@ -49,7 +46,6 @@ class CartAddView(generics.CreateAPIView):
 
 class CartListView(generics.ListAPIView):
     serializer_class = CartSerializer
-    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         return Cart.objects.filter(user=self.request.user)
@@ -58,7 +54,6 @@ class CartListView(generics.ListAPIView):
 class OrderCreateView(generics.CreateAPIView):
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
-    permission_classes = [IsAuthenticated]
 
     def perform_create(self, serializer):
         product_ids = serializer.validated_data.pop('product_ids')  # Remove product_ids from validated data
@@ -83,7 +78,6 @@ class OrderCreateView(generics.CreateAPIView):
 
 class OrderListView(generics.ListAPIView):
     serializer_class = OrderSerializer
-    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         return Order.objects.filter(user=self.request.user)
