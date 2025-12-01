@@ -70,6 +70,7 @@ INSTALLED_APPS = [
     'cloudinary_storage',
     'corsheaders',
     'django_redis',
+    'ckeditor',
 
 ]
 
@@ -226,6 +227,20 @@ SIMPLE_JWT = {
 ASGI_APPLICATION = 'befa.asgi.application'
 
 
+CKEDITOR_CONFIGS = {
+    'default': {
+        'toolbar': 'Custom',
+        'toolbar_Custom': [
+            ['Bold', 'Italic', 'Underline'],
+            ['NumberedList', 'BulletedList', '-', 'Outdent', 'Indent'],
+            ['Heading1', 'Heading2', 'Heading3'],
+            ['Link', 'Unlink'],
+            ['RemoveFormat', 'Source']
+        ],
+        'height': 200,
+        'width': '100%',
+    },
+}
 
 LOGGING = {
     'version': 1,
