@@ -1,4 +1,3 @@
-# admin.py
 from django import forms
 from django.contrib import admin
 from .models import Post, PostLike
@@ -50,3 +49,30 @@ class PostAdminForm(forms.ModelForm):
             instance.save()
         cache.delete('post_list')
         return instance
+
+
+# ✅ Register Post with your custom form
+@admin.register(Post)
+class PostAdmin(admin.ModelAdmin):
+    form = PostAdminForm  # ← This line was missing!
+    list_display = ('author', 'description_preview', 'created_at')
+    list_filter = ('created_at', 'author')
+    search_fields = ('description', 'author__email')
+
+    def description_preview(self, obj):
+        return obj.description[:50] + ('...' if len(obj.description) > 50 else '')
+    description_preview.short_description = 'Description'
+
+    def delete_model(self, request, obj):
+        cache.delete('post_list')
+        obj.delete()
+
+    def delete_queryset(self, request, queryset):
+        cache.delete('post_list')
+        queryset.delete()
+
+
+@admin.register(PostLike)
+class PostLikeAdmin(admin.ModelAdmin):
+    list_display = ('post', 'user', 'created_at')
+    list_filter = ('post', 'user')
