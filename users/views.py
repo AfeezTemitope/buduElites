@@ -9,3 +9,8 @@ class RegisterUserView(generics.CreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserCreateSerializer
 
+from django.http import HttpResponse
+
+def root_view(request):
+    return HttpResponse("BEFA API is running!", content_type="text/plain")
+
