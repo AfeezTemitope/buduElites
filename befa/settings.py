@@ -44,7 +44,7 @@ ALLOWED_HOSTS = [
 ]
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:5173', #localhost
-    'https://befa-five.vercel.app', 'https://buduelite.netlify.app' #deployed frontend
+    'https://befa-five.vercel.app', 'https://buduelite.netlify.app' 
 ]
 
 
@@ -196,9 +196,10 @@ CLOUDINARY_STORAGE = {
     'STATICFILES_MANIFEST_ROOT': os.path.join(BASE_DIR, 'staticfiles_manifest'),
 }
 
-
+#locmed added to disable redis cache in development
 CACHES = {
-    "default": {
+    "default": 
+    {
         "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
         "LOCATION": "unique-name"
     }
