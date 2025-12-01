@@ -198,22 +198,12 @@ CLOUDINARY_STORAGE = {
 
 
 CACHES = {
-    'default': {
-        'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': config('REDIS_URL'),
-        'OPTIONS': {
-            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
-            'CONNECTION_POOL_KWARGS': {
-                'ssl_cert_reqs': None,  # Disables certificate verification (safe for Upstash)
-                'health_check_interval': 30,  # Prevents idle timeout
-            },
-            'CONNECTION_POOL_CLASS': 'redis.BlockingConnectionPool',
-            'MAX_CONNECTIONS': 50,
-            'RETRY_ON_TIMEOUT': True,
-        },
-        'KEY_PREFIX': 'myapp',  # Optional: helps isolate cache
+    "default": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        "LOCATION": "unique-name"
     }
 }
+
 
 CACHE_PREFIX = 'v1'
 
