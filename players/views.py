@@ -2,7 +2,6 @@ from rest_framework import generics, status, filters
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from django.db.models import Q
 from django_filters.rest_framework import DjangoFilterBackend
 
 from utils.cache import cached_view, cache_key, invalidate, CACHE_TTL
@@ -16,9 +15,7 @@ from .serializers import (
 )
 
 
-# ═══════════════════════════════════════════════════════════════════
-# PUBLIC VIEWS (user-facing frontend)
-# ═══════════════════════════════════════════════════════════════════
+# ═══════════════════ PUBLIC VIEWS ═══════════════════
 
 
 class PlayerOfTheMonthView(APIView):
@@ -47,26 +44,20 @@ class FeaturedPlayersView(APIView):
     )
     def get(self, request):
         players = Player.objects.filter(
-            is_player_of_the_month=False, status="active"
+            is_player_of_the_month=False, admission_status="admitted"
         )[:3]
         return Response(PlayerPublicSerializer(players, many=True).data)
 
 
-# ═══════════════════════════════════════════════════════════════════
-# ADMIN VIEWS (admin portal frontend)
-# ═══════════════════════════════════════════════════════════════════
+# ═══════════════════ ADMIN VIEWS ═══════════════════
 
 
 class AdminPlayerListCreateView(generics.ListCreateAPIView):
-    """
-    GET  /api/admin/players/?search=&position=&status=
-    POST /api/admin/players/
-    """
     permission_classes = [IsAdminUser]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    search_fields = ["name", "guardian_name", "previous_club"]
-    filterset_fields = ["position", "status", "team"]
-    ordering_fields = ["name", "created_at", "position"]
+    search_fields = ["surname", "other_name", "middle_name", "parent_guardian_name"]
+    filterset_fields = ["soccer_position", "admission_status", "team"]
+    ordering_fields = ["surname", "created_at", "soccer_position"]
     ordering = ["-created_at"]
 
     def get_serializer_class(self):
@@ -78,22 +69,17 @@ class AdminPlayerListCreateView(generics.ListCreateAPIView):
         return Player.objects.all()
 
     def perform_create(self, serializer):
-        player = serializer.save()
+        serializer.save()
         invalidate(
             cache_key("player_of_the_month"),
             cache_key("featured_players"),
-            cache_key("admin_players"),
             cache_key("dashboard_stats"),
+            cache_key("recent_players"),
+            cache_key("position_breakdown"),
         )
-        return player
 
 
 class AdminPlayerDetailView(generics.RetrieveUpdateDestroyAPIView):
-    """
-    GET    /api/admin/players/<id>/
-    PATCH  /api/admin/players/<id>/
-    DELETE /api/admin/players/<id>/
-    """
     permission_classes = [IsAdminUser]
     serializer_class = PlayerAdminSerializer
     queryset = Player.objects.all()
@@ -103,59 +89,43 @@ class AdminPlayerDetailView(generics.RetrieveUpdateDestroyAPIView):
         invalidate(
             cache_key("player_of_the_month"),
             cache_key("featured_players"),
-            cache_key("admin_players"),
             cache_key("dashboard_stats"),
+            cache_key("recent_players"),
         )
 
     def perform_destroy(self, instance):
-        # Clean up Cloudinary images
-        delete_image(instance.image_public_id)
-        delete_image(instance.passport_photo_public_id)
+        delete_image(instance.player_image_public_id)
         instance.delete()
         invalidate(
             cache_key("player_of_the_month"),
             cache_key("featured_players"),
-            cache_key("admin_players"),
             cache_key("dashboard_stats"),
+            cache_key("recent_players"),
+            cache_key("position_breakdown"),
         )
 
 
 class AdminPlayerUploadPhotoView(APIView):
-    """POST /api/admin/players/<id>/upload-photo/"""
     permission_classes = [IsAdminUser]
 
     def post(self, request, pk):
         try:
             player = Player.objects.get(pk=pk)
         except Player.DoesNotExist:
-            return Response(
-                {"error": "Player not found"}, status=status.HTTP_404_NOT_FOUND
-            )
+            return Response({"error": "Player not found"}, status=status.HTTP_404_NOT_FOUND)
 
         file = request.FILES.get("file") or request.FILES.get("image")
         if not file:
-            return Response(
-                {"error": "No file provided"}, status=status.HTTP_400_BAD_REQUEST
-            )
+            return Response({"error": "No file provided"}, status=status.HTTP_400_BAD_REQUEST)
 
-        field = request.data.get("field", "passport_photo")  # or "image"
-
-        # Delete old image if exists
-        if field == "passport_photo":
-            delete_image(player.passport_photo_public_id)
-        else:
-            delete_image(player.image_public_id)
+        # Delete old image
+        delete_image(player.player_image_public_id)
 
         result = upload_image(file, folder="befa/players")
-
-        if field == "passport_photo":
-            player.passport_photo = result["url"]
-            player.passport_photo_public_id = result["public_id"]
-        else:
-            player.image = result["url"]
-            player.image_public_id = result["public_id"]
-
+        player.player_image = result["url"]
+        player.player_image_public_id = result["public_id"]
         player.save()
+
         invalidate(cache_key("player_of_the_month"), cache_key("featured_players"))
 
         return Response({

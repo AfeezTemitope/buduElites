@@ -1,8 +1,4 @@
-"""
-Admin Dashboard API — aggregated statistics.
-Matches the admin portal frontend's useDashboard hook.
-"""
-from django.db.models import Count, Avg, Q
+from django.db.models import Count, Avg
 from django.utils import timezone
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -18,7 +14,6 @@ from users.models import User
 
 
 class DashboardStatsView(APIView):
-    """GET /api/admin/dashboard/stats/"""
     permission_classes = [IsAdminUser]
 
     @cached_view(
@@ -30,17 +25,15 @@ class DashboardStatsView(APIView):
         thirty_days_ago = now - timezone.timedelta(days=30)
 
         total_players = Player.objects.count()
-        active_players = Player.objects.filter(status="active").count()
+        admitted = Player.objects.filter(admission_status="admitted").count()
+        pending = Player.objects.filter(admission_status="pending").count()
         new_this_month = Player.objects.filter(created_at__gte=thirty_days_ago).count()
-        avg_rating = Player.objects.filter(rating__isnull=False).aggregate(
-            avg=Avg("rating")
-        )["avg"]
 
         return Response({
             "total_players": total_players,
-            "active_players": active_players,
+            "admitted": admitted,
+            "pending": pending,
             "new_this_month": new_this_month,
-            "average_rating": round(avg_rating, 1) if avg_rating else 0,
             "total_posts": Post.objects.count(),
             "total_events": Event.objects.count(),
             "upcoming_events": Event.objects.filter(date__gte=now.date()).count(),
@@ -51,7 +44,6 @@ class DashboardStatsView(APIView):
 
 
 class RecentPlayersView(APIView):
-    """GET /api/admin/dashboard/recent-players/"""
     permission_classes = [IsAdminUser]
 
     @cached_view(
@@ -64,7 +56,6 @@ class RecentPlayersView(APIView):
 
 
 class PositionBreakdownView(APIView):
-    """GET /api/admin/dashboard/position-breakdown/"""
     permission_classes = [IsAdminUser]
 
     @cached_view(
@@ -73,8 +64,14 @@ class PositionBreakdownView(APIView):
     )
     def get(self, request):
         breakdown = (
-            Player.objects.values("position")
+            Player.objects.exclude(soccer_position="")
+            .values("soccer_position")
             .annotate(count=Count("id"))
             .order_by("-count")
         )
-        return Response(list(breakdown))
+        # Map to frontend expected format: { label, count }
+        result = [
+            {"label": f"{item['soccer_position']}s", "count": item["count"]}
+            for item in breakdown
+        ]
+        return Response(result)

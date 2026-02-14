@@ -12,15 +12,18 @@ def invalidate_player_cache_on_save(sender, instance, **kwargs):
         cache_key("player_of_the_month"),
         cache_key("featured_players"),
         cache_key("dashboard_stats"),
+        cache_key("recent_players"),
+        cache_key("position_breakdown"),
     )
 
 
 @receiver(post_delete, sender=Player)
 def cleanup_player_on_delete(sender, instance, **kwargs):
-    delete_image(instance.image_public_id)
-    delete_image(instance.passport_photo_public_id)
+    delete_image(instance.player_image_public_id)
     invalidate(
         cache_key("player_of_the_month"),
         cache_key("featured_players"),
         cache_key("dashboard_stats"),
+        cache_key("recent_players"),
+        cache_key("position_breakdown"),
     )

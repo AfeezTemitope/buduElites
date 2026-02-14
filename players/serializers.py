@@ -3,7 +3,10 @@ from .models import Player
 
 
 class PlayerPublicSerializer(serializers.ModelSerializer):
-    """Slim serializer for the user-facing frontend."""
+    """Slim serializer for user-facing frontend (player spotlight)."""
+    name = serializers.CharField(source='surname', read_only=True)
+    position = serializers.CharField(source='soccer_position', read_only=True)
+    image = serializers.URLField(source='player_image', read_only=True)
 
     class Meta:
         model = Player
@@ -17,16 +20,14 @@ class PlayerPublicSerializer(serializers.ModelSerializer):
 class PlayerAdminSerializer(serializers.ModelSerializer):
     """Full serializer for admin portal — all fields exposed."""
 
-    achievements = serializers.JSONField(required=False, allow_null=True)
-
     class Meta:
         model = Player
         fields = "__all__"
         read_only_fields = ["id", "created_at", "updated_at"]
 
-    def validate_achievements(self, value):
+    def validate_weaknesses(self, value):
         if value is not None and not isinstance(value, list):
-            raise serializers.ValidationError("Achievements must be a list.")
+            raise serializers.ValidationError("Weaknesses must be a list.")
         return value
 
 
@@ -36,6 +37,7 @@ class PlayerListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Player
         fields = [
-            "id", "name", "position", "team", "status", "image",
-            "passport_photo", "jersey_number", "age", "created_at",
+            "id", "surname", "other_name", "middle_name", "soccer_position",
+            "admission_status", "player_image", "state_of_origin",
+            "date_of_birth", "created_at",
         ]
