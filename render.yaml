@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: befa-api
+    runtime: docker
+    plan: free
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ALLOWED_HOSTS
+        value: ".onrender.com"

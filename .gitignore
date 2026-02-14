@@ -1,6 +1,15 @@
-.idea
-# Ignore migrations folders in all apps
-**/migrations/*
-!**/migrations/__init__.py
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+venv/
+.venv/
 .env
-
+*.db
+*.sqlite3
+staticfiles/
+media/
+.idea/
+.vscode/
+db.sqlite3
